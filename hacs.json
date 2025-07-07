@@ -1,0 +1,7 @@
+{
+  "name": "PVS",
+  "domains": ["sensor"],
+  "homeassistant": "2024.1.0",
+  "iot_class": ["Local Poll"],
+  "render_readme": true
+}

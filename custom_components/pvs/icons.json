@@ -1,0 +1,27 @@
+{
+  "entity": {
+    "sensor": {
+      "battery_temperature": {
+        "default": "mdi:thermometer"
+      },
+      "battery_state": {
+        "default": "mdi:battery-charging"
+      },
+      "wifi_signal": {
+        "default": "mdi:wifi"
+      },
+      "cpu_usage": {
+        "default": "mdi:cpu-32-bit"
+      },
+      "flash_usage": {
+        "default": "mdi:micro-sd"
+      },
+      "ram_usage": {
+        "default": "mdi:memory"
+      },
+      "gateway_uptime": {
+        "default": "mdi:clock"
+      }
+    }
+  }
+}

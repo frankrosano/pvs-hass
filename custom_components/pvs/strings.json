@@ -1,0 +1,39 @@
+{
+  "entity": {
+    "sensor": {
+      "gateway_uptime": {
+        "name": "Gateway uptime"
+      },
+      "ram_usage": {
+        "name": "RAM usage"
+      },
+      "flash_usage": {
+        "name": "Flash usage"
+      },
+      "cpu_usage": {
+        "name": "CPU usage"
+      }
+    },
+    "switch": {
+      "charge_from_grid": {
+        "name": "Charge from grid"
+      },
+      "grid_enabled": {
+        "name": "Grid enabled"
+      }
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "description": "Enter your PVS IP address"
+      },
+      "need_password": {
+        "description": "Enter the password for the PVS gateway."
+      }
+    },
+    "abort": {
+      "buy_token_here": "Follow one of the links to buy a license.\n{plans_list}"
+    }
+  }
+}
