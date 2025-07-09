@@ -8,7 +8,7 @@ DOMAIN: Final = "pvs"
 
 DEFAULT_NAME: Final = "PVS"
 
-from .pypvs.pypvs.pvs import PVSAuthenticationError, PVSCommunicationError
+from pypvs.pvs import PVSAuthenticationError, PVSCommunicationError
 
 from homeassistant.const import Platform
 

@@ -8,7 +8,7 @@ from datetime import timedelta
 import logging
 from typing import Any
 
-from .pypvs.pypvs.pvs import PVS
+from pypvs.pvs import PVS
 from .pypvs.pypvs.exceptions import PVSError, PVSAuthenticationError
 
 from homeassistant.config_entries import ConfigEntry

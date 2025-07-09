@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .pypvs.pypvs.pvs import PVS
+from pypvs.pvs import PVS
 
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
