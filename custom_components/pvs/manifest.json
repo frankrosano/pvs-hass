@@ -6,7 +6,7 @@
   "documentation": "https://www.home-assistant.io/integrations/pvs",
   "iot_class": "local_polling",
   "loggers": ["pypvs"],
-  "requirements": ["bcrypt"],
+  "requirements": ["bcrypt", "pypvs@git+https://github.com/SunStrong-Management/pypvs.git@main"],
   "zeroconf": [
     {
       "type": "_pvs6._tcp.local."
