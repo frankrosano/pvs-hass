@@ -31,9 +31,6 @@
       "need_password": {
         "description": "Enter the password for the PVS gateway."
       }
-    },
-    "abort": {
-      "buy_token_here": "Follow one of the links to buy a license.\n{plans_list}"
     }
   }
 }
