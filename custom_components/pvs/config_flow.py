@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from awesomeversion import AwesomeVersion
 from pypvs.pvs import PVS
-from .pypvs.pypvs.exceptions import PVSError, PVSAuthenticationError
+from pypvs.exceptions import PVSError, PVSAuthenticationError
 
 import voluptuous as vol
 

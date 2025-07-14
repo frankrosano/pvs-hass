@@ -9,7 +9,7 @@ import logging
 from typing import Any
 
 from pypvs.pvs import PVS
-from .pypvs.pypvs.exceptions import PVSError, PVSAuthenticationError
+from pypvs.exceptions import PVSError, PVSAuthenticationError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, CONF_PASSWORD

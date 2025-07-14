@@ -9,8 +9,8 @@ import logging
 from operator import attrgetter
 from typing import TYPE_CHECKING
 
-from .pypvs.pypvs.models.inverter import PVSInverter
-from .pypvs.pypvs.models.gateway import PVSGateway
+from pypvs.models.inverter import PVSInverter
+from pypvs.models.gateway import PVSGateway
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
