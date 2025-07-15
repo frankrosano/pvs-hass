@@ -21,7 +21,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PVSConfigEntry) -> bool:
     password = entry.data.get(CONF_PASSWORD)
 
     session = async_get_clientsession(hass)
-    pvs = PVS(session=session, host=host, user="spwr_owner", password=password)
+    pvs = PVS(session=session, host=host, user="ssm_owner", password=password)
 
     coordinator = PVSUpdateCoordinator(hass, pvs, entry)
 
