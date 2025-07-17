@@ -1,5 +1,5 @@
 {
-  "domain": "pvs",
+  "domain": "sunstrong_pvs",
   "name": "PVS",
   "codeowners": ["@shondll"],
   "config_flow": true,
