@@ -4,7 +4,7 @@ from typing import Final
 
 # This is the internal name of the integration, it should also match the directory
 # name for the integration.
-DOMAIN: Final = "pvs"
+DOMAIN: Final = "sunstrong_pvs"
 
 DEFAULT_NAME: Final = "PVS"
 
