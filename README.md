@@ -8,14 +8,14 @@ and https://www.home-assistant.io/integrations/enphase_envoy/
 
 ## Installation
 
-1. Click install.
-2. Install HACS
+1. Install Home Assistant on your target system https://www.home-assistant.io/installation/
+2. Install HACS https://www.hacs.xyz/docs/use/download/download/
 3. Add this Repo to HACS by going to the 3 dots on the right ...-> Custom repositories ->
- Repository: SunStrong-Management/pvs-hass Category: integration
-4. Install this integration in HACS
+ Repository: `SunStrong-Management/pvs-hass` Category: `Integration`
+4. Install this integration in HACS searching for `PVS` (using the latest release is recommended)
 5. Restart Home Assistant
 6. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "PVS".
-   * The main configuration is IP/Hostname. Check your router configuration for the IP of your PVS
+   * The main configuration is `<IP/Hostname>[:port]`. Check your router configuration for the IP of your PVS
 
 
 ## Options (available from 'configure' once integration is setup)
