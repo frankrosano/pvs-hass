@@ -27,6 +27,17 @@ This sets how fast the integration will try to get updated info from the PVS.
 
 ## Devices
 
+### Gateway
+
+This is the data from the PVS Gateway device. These sensors provide diagnostic and usage information about the gateway itself.
+
+| Entity           | Units   | Description                                 |
+| ---------------- | ------- | ------------------------------------------- |
+| `Uptime`         | Seconds | Time since the gateway was last restarted   |
+| `RAM Usage`      | %       | Percentage of RAM currently in use          |
+| `Flash Usage`    | %       | Percentage of flash storage currently used  |
+| `CPU Usage`      | %       | Percentage of CPU currently in use          |
+
 ### Inverter
 
 This is the data from each Micro Inverter.  Each inverter optimizes the power generation
@@ -42,7 +53,7 @@ You should see one of these for every panel you have, they are listed by serial 
 | `Current`         | Amps   | Electrical current this inverter is producing on the AC side                 |
 | `Temperature`     | oC     | Temperature of this inverter                                                 |
 
-### Gateway
+### Meter
 
 TBD
 
