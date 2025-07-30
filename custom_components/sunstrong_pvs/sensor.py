@@ -10,6 +10,7 @@ from operator import attrgetter
 from typing import TYPE_CHECKING
 
 from pypvs.models.inverter import PVSInverter
+from pypvs.models.meter import PVSMeter
 from pypvs.models.gateway import PVSGateway
 
 from homeassistant.components.sensor import (
@@ -22,6 +23,7 @@ from homeassistant.const import (
     PERCENTAGE,
     EntityCategory,
     UnitOfApparentPower,
+    UnitOfReactivePower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
@@ -51,6 +53,14 @@ class PVSInverterSensorEntityDescription(SensorEntityDescription):
     """Describes an PVS Sunpower/Enphase microinverter sensor entity."""
 
     value_fn: Callable[[PVSInverter], datetime.datetime | float]
+
+
+@dataclass(frozen=True, kw_only=True)
+class PVSMeterSensorEntityDescription(SensorEntityDescription):
+    """Describes a built-in PVS meter sensor entity."""
+
+    value_fn: Callable[[PVSMeter], float | datetime.datetime | None]
+
 
 @dataclass(frozen=True, kw_only=True)
 class PVSGatewaySensorEntityDescription(SensorEntityDescription):
@@ -154,6 +164,157 @@ GATEWAY_SENSORS = (
     ),
 )
 
+METER_SENSORS = (
+    PVSMeterSensorEntityDescription(
+        key="power_3ph_kw",
+        translation_key="power_3ph_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("power_3ph_kw"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="voltage_3ph_v",
+        translation_key="voltage_3ph_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("voltage_3ph_v"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="current_3ph_a",
+        translation_key="current_3ph_a",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.CURRENT,
+        value_fn=attrgetter("current_3ph_a"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="freq_hz",
+        translation_key="freq_hz",
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.FREQUENCY,
+        value_fn=attrgetter("freq_hz"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="lte_3ph_kwh",
+        translation_key="lte_3ph_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("lte_3ph_kwh"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="ct_scale_factor",
+        translation_key="ct_scale_factor",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("ct_scale_factor"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="i1_a",
+        translation_key="i1_a",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.CURRENT,
+        value_fn=attrgetter("i1_a"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="i2_a",
+        translation_key="i2_a",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.CURRENT,
+        value_fn=attrgetter("i2_a"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="neg_lte_kwh",
+        translation_key="neg_lte_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("neg_lte_kwh"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="net_lte_kwh",
+        translation_key="net_lte_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("net_lte_kwh"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="p1_kw",
+        translation_key="p1_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("p1_kw"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="p2_kw",
+        translation_key="p2_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("p2_kw"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="pos_lte_kwh",
+        translation_key="pos_lte_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("pos_lte_kwh"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="q3phsum_kvar",
+        translation_key="q3phsum_kvar",
+        native_unit_of_measurement=UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=None,
+        value_fn=attrgetter("q3phsum_kvar"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="s3phsum_kva",
+        translation_key="s3phsum_kva",
+        native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=None,
+        value_fn=attrgetter("s3phsum_kva"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="tot_pf_ratio",
+        translation_key="tot_pf_ratio",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("tot_pf_ratio"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="v12_v",
+        translation_key="v12_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v12_v"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="v1n_v",
+        translation_key="v1n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v1n_v"),
+    ),
+    PVSMeterSensorEntityDescription(
+        key="v2n_v",
+        translation_key="v2n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v2n_v"),
+    ),
+)
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: PVSConfigEntry,
@@ -178,6 +339,13 @@ async def async_setup_entry(
             PVSInverterEntity(coordinator, description, inverter)
             for description in INVERTER_SENSORS
             for inverter in pvs_data.inverters.values()
+        )
+
+    if pvs_data.meters:
+        entities.extend(
+            PVSMeterEntity(coordinator, description, meter)
+            for description in METER_SENSORS
+            for meter in pvs_data.meters.values()
         )
 
     async_add_entities(entities)
@@ -260,3 +428,44 @@ class PVSInverterEntity(PVSSensorBaseEntity):
             )
             return None
         return self.entity_description.value_fn(inverters[self._serial_number])
+
+class PVSMeterEntity(PVSSensorBaseEntity):
+    """PVS meter entity."""
+
+    entity_description: PVSMeterSensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: PVSUpdateCoordinator,
+        description: PVSMeterSensorEntityDescription,
+        meter: PVSMeter,
+    ) -> None:
+        """Initialize a PVS meter entity."""
+        super().__init__(coordinator, description)
+        self._serial_number = meter.serial_number
+        key = description.key
+        self._attr_unique_id = f"{self._serial_number}_{key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._serial_number)},
+            serial_number=self._serial_number,
+            sw_version="UNKNOWN",
+            hw_version=meter.model,
+            name=f"Meter {self._serial_number}",
+            manufacturer="Sunpower",
+            model="Meter",
+            via_device=(DOMAIN, self.pvs_serial_num),
+        )
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the state of the sensor."""
+        meters = self.data.meters
+        assert meters is not None
+        if self._serial_number not in meters:
+            _LOGGER.debug(
+                "Meter %s not in returned meters array (size: %s)",
+                self._serial_number,
+                len(meters),
+            )
+            return None
+        return self.entity_description.value_fn(meters[self._serial_number])
