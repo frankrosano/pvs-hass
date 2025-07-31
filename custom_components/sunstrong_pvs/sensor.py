@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from pypvs.models.inverter import PVSInverter
 from pypvs.models.meter import PVSMeter
 from pypvs.models.gateway import PVSGateway
+from pypvs.models.ess import PVSESS
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -67,6 +68,13 @@ class PVSGatewaySensorEntityDescription(SensorEntityDescription):
     """Describes an PVS Sunpower/Enphase gateway sensor entity."""
 
     value_fn: Callable[[PVSGateway], int | str | None]
+
+
+@dataclass(frozen=True, kw_only=True)
+class PVSESSSensorEntityDescription(SensorEntityDescription):
+    """Describes an Equinox ESS sensor entity."""
+
+    value_fn: Callable[[PVSESS], float | int | str | None]
 
 
 INVERTER_SENSORS = (
@@ -316,6 +324,141 @@ METER_SENSORS = (
     ),
 )
 
+ESS_SENSORS = (
+    PVSESSSensorEntityDescription(
+        key="power_3ph_kw",
+        translation_key="power_3ph_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("power_3ph_kw"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="neg_lte_kwh",
+        translation_key="neg_lte_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("neg_lte_kwh"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="pos_lte_kwh",
+        translation_key="pos_lte_kwh",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        value_fn=attrgetter("pos_lte_kwh"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="v1n_v",
+        translation_key="v1n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v1n_v"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="v2n_v",
+        translation_key="v2n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v2n_v"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="op_mode",
+        translation_key="op_mode",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("op_mode"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="soc_val",
+        translation_key="soc_val",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=attrgetter("soc_val"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="customer_soc_val",
+        translation_key="customer_soc_val",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=attrgetter("customer_soc_val"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="soh_val",
+        translation_key="soh_val",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("soh_val"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="t_invtr_degc",
+        translation_key="t_invtr_degc",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        value_fn=attrgetter("t_invtr_degc"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="v_batt_v",
+        translation_key="v_batt_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v_batt_v"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="chrg_limit_pmax_kw",
+        translation_key="chrg_limit_pmax_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("chrg_limit_pmax_kw"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="dischrg_lim_pmax_kw",
+        translation_key="dischrg_lim_pmax_kw",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        value_fn=attrgetter("dischrg_lim_pmax_kw"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="max_t_batt_cell_degc",
+        translation_key="max_t_batt_cell_degc",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        value_fn=attrgetter("max_t_batt_cell_degc"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="min_t_batt_cell_degc",
+        translation_key="min_t_batt_cell_degc",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        value_fn=attrgetter("min_t_batt_cell_degc"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="max_v_batt_cell_v",
+        translation_key="max_v_batt_cell_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("max_v_batt_cell_v"),
+    ),
+    PVSESSSensorEntityDescription(
+        key="min_v_batt_cell_v",
+        translation_key="min_v_batt_cell_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("min_v_batt_cell_v"),
+    ),
+)
+
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: PVSConfigEntry,
@@ -347,6 +490,13 @@ async def async_setup_entry(
             PVSMeterEntity(coordinator, description, meter)
             for description in METER_SENSORS
             for meter in pvs_data.meters.values()
+        )
+
+    if pvs_data.ess:
+        entities.extend(
+            PVSESSEntity(coordinator, description, ess)
+            for description in ESS_SENSORS
+            for ess in pvs_data.ess.values()
         )
 
     async_add_entities(entities)
@@ -470,3 +620,44 @@ class PVSMeterEntity(PVSSensorBaseEntity):
             )
             return None
         return self.entity_description.value_fn(meters[self._serial_number])
+
+class PVSESSEntity(PVSSensorBaseEntity):
+    """PVS ESS entity."""
+
+    entity_description: PVSESSSensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: PVSUpdateCoordinator,
+        description: PVSESSSensorEntityDescription,
+        ess: Any,
+    ) -> None:
+        """Initialize a PVS ESS entity."""
+        super().__init__(coordinator, description)
+        self._serial_number = ess.serial_number
+        key = description.key
+        self._attr_unique_id = f"{self._serial_number}_{key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._serial_number)},
+            serial_number=self._serial_number,
+            sw_version="UNKNOWN",
+            hw_version=ess.model,
+            name=f"ESS {self._serial_number}",
+            manufacturer="Sunpower",
+            model="ESS",
+            via_device=(DOMAIN, self.pvs_serial_num),
+        )
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the state of the sensor."""
+        ess = self.data.ess
+        assert ess is not None
+        if self._serial_number not in ess:
+            _LOGGER.debug(
+                "ESS %s not in returned ESS array (size: %s)",
+                self._serial_number,
+                len(ess),
+            )
+            return None
+        return self.entity_description.value_fn(ess[self._serial_number])

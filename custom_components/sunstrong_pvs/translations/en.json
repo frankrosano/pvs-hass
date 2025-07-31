@@ -90,6 +90,42 @@
       },
       "v2n_v": {
         "name": "Phase 2-N Voltage"
+      },
+      "op_mode": {
+        "name": "Operating Mode"
+      },
+      "soc_val": {
+        "name": "State of Charge"
+      },
+      "customer_soc_val": {
+        "name": "Customer State of Charge"
+      },
+      "soh_val": {
+        "name": "State of Health"
+      },
+      "t_invtr_degc": {
+        "name": "Inverter Temperature"
+      },
+      "v_batt_v": {
+        "name": "Battery Voltage"
+      },
+      "chrg_limit_pmax_kw": {
+        "name": "Charge Limit Power Max"
+      },
+      "dischrg_lim_pmax_kw": {
+        "name": "Discharge Limit Power Max"
+      },
+      "max_t_batt_cell_degc": {
+        "name": "Max Battery Cell Temperature"
+      },
+      "min_t_batt_cell_degc": {
+        "name": "Min Battery Cell Temperature"
+      },
+      "max_v_batt_cell_v": {
+        "name": "Max Battery Cell Voltage"
+      },
+      "min_v_batt_cell_v": {
+        "name": "Min Battery Cell Voltage"
       }
     },
     "switch": {

@@ -72,6 +72,14 @@ async def async_remove_config_entry_device(
             for meter in pvs_data.meters:
                 if str(meter) in dev_ids:
                     return False
+        if pvs_data.ess:
+            for ess in pvs_data.ess:
+                if str(ess) in dev_ids:
+                    return False
+        if pvs_data.transfer_switches:
+            for switch in pvs_data.transfer_switches:
+                if str(switch) in dev_ids:
+                    return False
         # if pvs_data.gateway:
         #     if str(pvs_data.serial_number) in dev_ids:
         #         return False
