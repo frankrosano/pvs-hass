@@ -12,6 +12,138 @@
       },
       "cpu_usage": {
         "name": "CPU usage"
+      },
+      "current_power_production": {
+        "name": "Current Power Production"
+      },
+      "last_reported": {
+        "name": "Last Reported"
+      },
+      "lifetime_production": {
+        "name": "Lifetime Production"
+      },
+      "production_current": {
+        "name": "Production Current"
+      },
+      "production_voltage": {
+        "name": "Production Voltage"
+      },
+      "frequency": {
+        "name": "Grid Frequency"
+      },
+      "temperature": {
+        "name": "Heatsink Temperature"
+      },
+      "power_3ph_kw": {
+        "name": "3-Phase Power"
+      },
+      "voltage_3ph_v": {
+        "name": "3-Phase Voltage"
+      },
+      "current_3ph_a": {
+        "name": "3-Phase Current"
+      },
+      "freq_hz": {
+        "name": "Frequency"
+      },
+      "lte_3ph_kwh": {
+        "name": "Lifetime Energy 3-Phase"
+      },
+      "ct_scale_factor": {
+        "name": "CT Scale Factor"
+      },
+      "i1_a": {
+        "name": "Current Phase 1"
+      },
+      "i2_a": {
+        "name": "Current Phase 2"
+      },
+      "neg_lte_kwh": {
+        "name": "Negative Lifetime Energy"
+      },
+      "net_lte_kwh": {
+        "name": "Net Lifetime Energy"
+      },
+      "p1_kw": {
+        "name": "Power Phase 1"
+      },
+      "p2_kw": {
+        "name": "Power Phase 2"
+      },
+      "pos_lte_kwh": {
+        "name": "Positive Lifetime Energy"
+      },
+      "q3phsum_kvar": {
+        "name": "Reactive Power 3-Phase"
+      },
+      "s3phsum_kva": {
+        "name": "Apparent Power 3-Phase"
+      },
+      "tot_pf_ratio": {
+        "name": "Total Power Factor"
+      },
+      "v12_v": {
+        "name": "Line-to-Line Voltage"
+      },
+      "v1n_v": {
+        "name": "Phase 1-N Voltage"
+      },
+      "v2n_v": {
+        "name": "Phase 2-N Voltage"
+      },
+      "op_mode": {
+        "name": "Operating Mode"
+      },
+      "soc_val": {
+        "name": "State of Charge"
+      },
+      "customer_soc_val": {
+        "name": "Customer State of Charge"
+      },
+      "soh_val": {
+        "name": "State of Health"
+      },
+      "t_invtr_degc": {
+        "name": "Inverter Temperature"
+      },
+      "v_batt_v": {
+        "name": "Battery Voltage"
+      },
+      "chrg_limit_pmax_kw": {
+        "name": "Charge Limit Power Max"
+      },
+      "dischrg_lim_pmax_kw": {
+        "name": "Discharge Limit Power Max"
+      },
+      "max_t_batt_cell_degc": {
+        "name": "Max Battery Cell Temperature"
+      },
+      "min_t_batt_cell_degc": {
+        "name": "Min Battery Cell Temperature"
+      },
+      "max_v_batt_cell_v": {
+        "name": "Max Battery Cell Voltage"
+      },
+      "min_v_batt_cell_v": {
+        "name": "Min Battery Cell Voltage"
+      },
+      "mid_state": {
+        "name": "MIDC State"
+      },
+      "pvd1_state": {
+        "name": "PVD1 State"
+      },
+      "temperature_c": {
+        "name": "MIDC Temperature"
+      },
+      "v1n_grid_v": {
+        "name": "Grid Phase 1-N Voltage"
+      },
+      "v2n_grid_v": {
+        "name": "Grid Phase 2-N Voltage"
+      },
+      "v_supply_v": {
+        "name": "MIDC Supply Voltage"
       }
     },
     "switch": {
