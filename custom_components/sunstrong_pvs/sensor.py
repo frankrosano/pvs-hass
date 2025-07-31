@@ -13,6 +13,7 @@ from pypvs.models.inverter import PVSInverter
 from pypvs.models.meter import PVSMeter
 from pypvs.models.gateway import PVSGateway
 from pypvs.models.ess import PVSESS
+from pypvs.models.transfer_switch import PVSTransferSwitch
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -75,6 +76,13 @@ class PVSESSSensorEntityDescription(SensorEntityDescription):
     """Describes an Equinox ESS sensor entity."""
 
     value_fn: Callable[[PVSESS], float | int | str | None]
+
+
+@dataclass(frozen=True, kw_only=True)
+class PVSTransferSwitchSensorEntityDescription(SensorEntityDescription):
+    """Describes a MIDC transfer switch sensor entity."""
+
+    value_fn: Callable[[PVSTransferSwitch], float | int | str | None]
 
 
 INVERTER_SENSORS = (
@@ -457,7 +465,68 @@ ESS_SENSORS = (
     ),
 )
 
-
+TRANSFER_SWITCH_SENSORS = (
+    PVSTransferSwitchSensorEntityDescription(
+        key="mid_state",
+        translation_key="mid_state",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("mid_state"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="pvd1_state",
+        translation_key="pvd1_state",
+        native_unit_of_measurement=None,
+        value_fn=attrgetter("pvd1_state"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="temperature_c",
+        translation_key="temperature_c",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        value_fn=attrgetter("temperature_c"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="v1n_grid_v",
+        translation_key="v1n_grid_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v1n_grid_v"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="v1n_v",
+        translation_key="v1n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v1n_v"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="v2n_grid_v",
+        translation_key="v2n_grid_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v2n_grid_v"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="v2n_v",
+        translation_key="v2n_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v2n_v"),
+    ),
+    PVSTransferSwitchSensorEntityDescription(
+        key="v_supply_v",
+        translation_key="v_supply_v",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        value_fn=attrgetter("v_supply_v"),
+    ),
+)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -497,6 +566,13 @@ async def async_setup_entry(
             PVSESSEntity(coordinator, description, ess)
             for description in ESS_SENSORS
             for ess in pvs_data.ess.values()
+        )
+
+    if pvs_data.transfer_switches:
+        entities.extend(
+            PVSTransferSwitchEntity(coordinator, description, transfer_switch)
+            for description in TRANSFER_SWITCH_SENSORS
+            for transfer_switch in pvs_data.transfer_switches.values()
         )
 
     async_add_entities(entities)
@@ -630,7 +706,7 @@ class PVSESSEntity(PVSSensorBaseEntity):
         self,
         coordinator: PVSUpdateCoordinator,
         description: PVSESSSensorEntityDescription,
-        ess: Any,
+        ess: PVSESS,
     ) -> None:
         """Initialize a PVS ESS entity."""
         super().__init__(coordinator, description)
@@ -661,3 +737,44 @@ class PVSESSEntity(PVSSensorBaseEntity):
             )
             return None
         return self.entity_description.value_fn(ess[self._serial_number])
+
+class PVSTransferSwitchEntity(PVSSensorBaseEntity):
+    """PVS transfer switch entity."""
+
+    entity_description: PVSTransferSwitchSensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: PVSUpdateCoordinator,
+        description: PVSTransferSwitchSensorEntityDescription,
+        transfer_switch: PVSTransferSwitch,
+    ) -> None:
+        """Initialize a PVS transfer switch entity."""
+        super().__init__(coordinator, description)
+        self._serial_number = transfer_switch.serial_number
+        key = description.key
+        self._attr_unique_id = f"{self._serial_number}_{key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._serial_number)},
+            serial_number=self._serial_number,
+            sw_version="UNKNOWN",
+            hw_version=transfer_switch.model,
+            name=f"Transfer Switch {self._serial_number}",
+            manufacturer="Sunpower",
+            model="Transfer Switch",
+            via_device=(DOMAIN, self.pvs_serial_num),
+        )
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the state of the sensor."""
+        transfer_switches = self.data.transfer_switches
+        assert transfer_switches is not None
+        if self._serial_number not in transfer_switches:
+            _LOGGER.debug(
+                "Transfer switch %s not in returned transfer switch array (size: %s)",
+                self._serial_number,
+                len(transfer_switches),
+            )
+            return None
+        return self.entity_description.value_fn(transfer_switches[self._serial_number])

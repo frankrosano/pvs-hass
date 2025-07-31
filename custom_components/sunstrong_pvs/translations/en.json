@@ -126,6 +126,24 @@
       },
       "min_v_batt_cell_v": {
         "name": "Min Battery Cell Voltage"
+      },
+      "mid_state": {
+        "name": "MIDC State"
+      },
+      "pvd1_state": {
+        "name": "PVD1 State"
+      },
+      "temperature_c": {
+        "name": "MIDC Temperature"
+      },
+      "v1n_grid_v": {
+        "name": "Grid Phase 1-N Voltage"
+      },
+      "v2n_grid_v": {
+        "name": "Grid Phase 2-N Voltage"
+      },
+      "v_supply_v": {
+        "name": "MIDC Supply Voltage"
       }
     },
     "switch": {
