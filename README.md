@@ -5,6 +5,7 @@ Home Assistant SunPower PVS Integration.
 Based on https://github.com/krbaker/hass-sunpower
 and https://www.home-assistant.io/integrations/enphase_envoy/
 
+<img width="1597" height="1610" alt="localhost_8123_lovelace_0" src="https://github.com/user-attachments/assets/f305506b-15f4-43cd-905b-6e3eadf5a43b" />
 
 ## Installation
 
