@@ -86,8 +86,8 @@ INVERTER_SENSORS = (
         value_fn=lambda inverter: dt_util.utc_from_timestamp(inverter.last_report_date),
     ),
     PVSInverterSensorEntityDescription(
-        key="lifetime_consumption",
-        translation_key="lifetime_consumption",
+        key="lifetime_production",
+        translation_key="lifetime_production",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
@@ -125,6 +125,7 @@ INVERTER_SENSORS = (
     ),
     PVSInverterSensorEntityDescription(
         key="temperature",
+        translation_key="temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         value_fn=attrgetter("last_report_temperature_c"),

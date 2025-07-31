@@ -12,6 +12,84 @@
       },
       "cpu_usage": {
         "name": "CPU usage"
+      },
+      "current_power_production": {
+        "name": "Current Power Production"
+      },
+      "last_reported": {
+        "name": "Last Reported"
+      },
+      "lifetime_production": {
+        "name": "Lifetime Production"
+      },
+      "production_current": {
+        "name": "Production Current"
+      },
+      "production_voltage": {
+        "name": "Production Voltage"
+      },
+      "frequency": {
+        "name": "Grid Frequency"
+      },
+      "temperature": {
+        "name": "Heatsink Temperature"
+      },
+      "power_3ph_kw": {
+        "name": "3-Phase Power"
+      },
+      "voltage_3ph_v": {
+        "name": "3-Phase Voltage"
+      },
+      "current_3ph_a": {
+        "name": "3-Phase Current"
+      },
+      "freq_hz": {
+        "name": "Frequency"
+      },
+      "lte_3ph_kwh": {
+        "name": "Lifetime Energy 3-Phase"
+      },
+      "ct_scale_factor": {
+        "name": "CT Scale Factor"
+      },
+      "i1_a": {
+        "name": "Current Phase 1"
+      },
+      "i2_a": {
+        "name": "Current Phase 2"
+      },
+      "neg_lte_kwh": {
+        "name": "Negative Lifetime Energy"
+      },
+      "net_lte_kwh": {
+        "name": "Net Lifetime Energy"
+      },
+      "p1_kw": {
+        "name": "Power Phase 1"
+      },
+      "p2_kw": {
+        "name": "Power Phase 2"
+      },
+      "pos_lte_kwh": {
+        "name": "Positive Lifetime Energy"
+      },
+      "q3phsum_kvar": {
+        "name": "Reactive Power 3-Phase"
+      },
+      "s3phsum_kva": {
+        "name": "Apparent Power 3-Phase"
+      },
+      "tot_pf_ratio": {
+        "name": "Total Power Factor"
+      },
+      "v12_v": {
+        "name": "Line-to-Line Voltage"
+      },
+      "v1n_v": {
+        "name": "Phase 1-N Voltage"
+      },
+      "v2n_v": {
+        "name": "Phase 2-N Voltage"
       }
     },
     "switch": {
