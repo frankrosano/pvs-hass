@@ -5,6 +5,7 @@ Home Assistant SunPower PVS Integration.
 Based on https://github.com/krbaker/hass-sunpower
 and https://www.home-assistant.io/integrations/enphase_envoy/
 
+<img width="1597" height="1610" alt="localhost_8123_lovelace_0" src="https://github.com/user-attachments/assets/f305506b-15f4-43cd-905b-6e3eadf5a43b" />
 
 ## Installation
 
@@ -55,7 +56,69 @@ You should see one of these for every panel you have, they are listed by serial 
 
 ### Meter
 
-TBD
+This is the data from the built-in PVS meter. These sensors provide detailed electrical measurements and energy statistics from the meter.
+
+| Entity                  | Units | Description                              |
+|-------------------------|-------|------------------------------------------|
+| `3-Phase Power`         | kW    | Total 3-phase power                      |
+| `3-Phase Voltage`       | V     | Total 3-phase voltage                    |
+| `3-Phase Current`       | A     | Total 3-phase current                    |
+| `Frequency`             | Hz    | Grid frequency                           |
+| `Lifetime Energy 3-Phase`| kWh  | Lifetime energy measured (3-phase)       |
+| `CT Scale Factor`       |       | Current transformer scale factor         |
+| `Current Phase 1`       | A     | Current on phase 1                       |
+| `Current Phase 2`       | A     | Current on phase 2                       |
+| `Negative Lifetime Energy`| kWh | Negative lifetime energy                 |
+| `Net Lifetime Energy`   | kWh   | Net lifetime energy                      |
+| `Power Phase 1`         | kW    | Power on phase 1                         |
+| `Power Phase 2`         | kW    | Power on phase 2                         |
+| `Positive Lifetime Energy`| kWh | Positive lifetime energy                 |
+| `Reactive Power 3-Phase`| kVAR  | Total 3-phase reactive power             |
+| `Apparent Power 3-Phase`| kVA   | Total 3-phase apparent power             |
+| `Total Power Factor`    |       | Total power factor ratio                 |
+| `Line-to-Line Voltage`  | V     | Voltage between phases                   |
+| `Phase 1-N Voltage`     | V     | Voltage phase 1 to neutral               |
+| `Phase 2-N Voltage`     | V     | Voltage phase 2 to neutral               |
+
+### ESS (Energy Storage System)
+
+This is the data from the Equinox ESS device. These sensors provide information about the battery, inverter, and operational state of the ESS.
+
+| Entity                    | Units | Description                                 |
+|---------------------------|-------|---------------------------------------------|
+| `3-Phase Power`           | kW    | Total 3-phase power                         |
+| `Negative Lifetime Energy`| kWh   | Negative lifetime energy                    |
+| `Positive Lifetime Energy`| kWh   | Positive lifetime energy                    |
+| `Phase 1-N Voltage`       | V     | Voltage, phase 1 to neutral                 |
+| `Phase 2-N Voltage`       | V     | Voltage, phase 2 to neutral                 |
+| `Operating Mode`          | enum  | Current ESS operating mode                  |
+| `State of Charge`         | %     | Battery state of charge                     |
+| `Customer State of Charge`| %     | Customer-reported state of charge           |
+| `State of Health`         | %     | Battery state of health                     |
+| `Inverter Temperature`    | °C    | Inverter temperature                        |
+| `Battery Voltage`         | V     | Battery voltage                             |
+| `Charge Limit Power Max`  | kW    | Maximum charge power limit                  |
+| `Discharge Limit Power Max`| kW   | Maximum discharge power limit               |
+| `Max Battery Cell Temp`   | °C    | Maximum battery cell temperature            |
+| `Min Battery Cell Temp`   | °C    | Minimum battery cell temperature            |
+| `Max Battery Cell Voltage`| V     | Maximum battery cell voltage                |
+| `Min Battery Cell Voltage`| V     | Minimum battery cell voltage                |
+
+### MIDC (Microgrid Interconnected Device Controller)
+
+This is the data from the MIDC (Transfer Switch) device. These sensors provide state and voltage information about the MIDC.
+
+| Entity             | Units   | Description                        |
+| ------------------ | ------- | ---------------------------------- |
+| `MIDC State`       |         | Current MIDC state                 |
+| `PVD1 State`       |         | Current PVD1 state                 |
+| `MIDC Temperature` | °C      | MIDC internal temperature          |
+| `Grid Phase 1-N Voltage` | V | Grid voltage, phase 1 to neutral   |
+| `Phase 1-N Voltage`| V       | Output voltage, phase 1 to neutral |
+| `Grid Phase 2-N Voltage` | V | Grid voltage, phase 2 to neutral   |
+| `Phase 2-N Voltage`| V       | Output voltage, phase 2 to neutral |
+| `MIDC Supply Voltage` | V    | MIDC supply voltage                |
+
 
 ## Debugging
 
