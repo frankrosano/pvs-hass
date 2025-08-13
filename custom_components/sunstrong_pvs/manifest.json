@@ -10,6 +10,9 @@
   "zeroconf": [
     {
       "type": "_pvs6._tcp.local."
+    },
+    {
+      "type": "_pvs5._tcp.local."
     }
   ],
   "version": "0.0.1"
