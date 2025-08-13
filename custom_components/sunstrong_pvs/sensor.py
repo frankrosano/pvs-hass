@@ -52,7 +52,7 @@ LAST_REPORTED_KEY = "last_reported"
 
 @dataclass(frozen=True, kw_only=True)
 class PVSInverterSensorEntityDescription(SensorEntityDescription):
-    """Describes an PVS Sunpower/Enphase microinverter sensor entity."""
+    """Describes an PVS SunStrong Management microinverter sensor entity."""
 
     value_fn: Callable[[PVSInverter], datetime.datetime | float]
 
@@ -66,7 +66,7 @@ class PVSMeterSensorEntityDescription(SensorEntityDescription):
 
 @dataclass(frozen=True, kw_only=True)
 class PVSGatewaySensorEntityDescription(SensorEntityDescription):
-    """Describes an PVS Sunpower/Enphase gateway sensor entity."""
+    """Describes an PVS SunStrong Management gateway sensor entity."""
 
     value_fn: Callable[[PVSGateway], int | str | None]
 
@@ -597,7 +597,7 @@ class PVSGatewayEntity(PVSSensorBaseEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self.pvs_serial_num)},
             connections={(CONNECTION_NETWORK_MAC, gateway.mac)},
-            manufacturer="Sunpower",
+            manufacturer="SunStrong Management",
             model=gateway.model,
             name="PVS Gateway",
             sw_version=gateway.software_version,
@@ -633,7 +633,7 @@ class PVSInverterEntity(PVSSensorBaseEntity):
             sw_version="UNKNOWN",
             hw_version=inverter.model,
             name=f"MI {self._serial_number}",
-            manufacturer="Sunpower/Enphase",
+            manufacturer="SunStrong Management",
             model="Inverter",
             via_device=(DOMAIN, self.pvs_serial_num),
         )
@@ -678,7 +678,7 @@ class PVSMeterEntity(PVSSensorBaseEntity):
             sw_version="UNKNOWN",
             hw_version=meter.model,
             name=f"Meter {self._serial_number}",
-            manufacturer="Sunpower",
+            manufacturer="SunStrong Management",
             model="Meter",
             via_device=(DOMAIN, self.pvs_serial_num),
         )
@@ -719,7 +719,7 @@ class PVSESSEntity(PVSSensorBaseEntity):
             sw_version="UNKNOWN",
             hw_version=ess.model,
             name=f"ESS {self._serial_number}",
-            manufacturer="Sunpower",
+            manufacturer="SunStrong Management",
             model="ESS",
             via_device=(DOMAIN, self.pvs_serial_num),
         )
@@ -760,7 +760,7 @@ class PVSTransferSwitchEntity(PVSSensorBaseEntity):
             sw_version="UNKNOWN",
             hw_version=transfer_switch.model,
             name=f"Transfer Switch {self._serial_number}",
-            manufacturer="Sunpower",
+            manufacturer="SunStrong Management",
             model="Transfer Switch",
             via_device=(DOMAIN, self.pvs_serial_num),
         )

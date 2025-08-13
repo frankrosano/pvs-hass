@@ -1,4 +1,4 @@
-"""The PVS6 integration."""
+"""The PVS integration."""
 
 from __future__ import annotations
 
