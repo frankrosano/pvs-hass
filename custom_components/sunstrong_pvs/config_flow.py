@@ -36,7 +36,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PVS6 = "PVS6"
+PVS_NAME = "PVS"
 
 CONF_SERIAL = "serial"
 
@@ -136,7 +136,7 @@ class PVSConfigFlow(ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug(
                     "Zeroconf update PVS with this ip and blank serial in unique_id",
                 )
-                title = f"{PVS6} {serial}" if entry.title == PVS6 else PVS6
+                title = f"{PVS_NAME} {serial}" if entry.title == PVS_NAME else PVS_NAME
                 return self.async_update_reload_and_abort(
                     entry, title=title, unique_id=serial, reason="already_configured"
                 )
@@ -155,7 +155,7 @@ class PVSConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def _async_pvs_name(self) -> str:
         """Return the name of the pvs."""
-        return f"{PVS6} {self.unique_id}" if self.unique_id else PVS6
+        return f"{PVS_NAME} {self.unique_id}" if self.unique_id else PVS_NAME
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

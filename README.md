@@ -1,6 +1,6 @@
 # hass-pvs
 
-Home Assistant SunPower PVS Integration.
+Home Assistant SunStrong Management (former Sunpower) PVS Integration.
 
 Based on https://github.com/krbaker/hass-sunpower
 and https://www.home-assistant.io/integrations/enphase_envoy/
