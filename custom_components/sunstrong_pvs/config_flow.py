@@ -37,6 +37,8 @@ from .const import (
     OPTION_LIVE_DATA_UPDATE_PERIOD_S,
     OPTION_LIVE_DATA_UPDATE_PERIOD_S_DEFAULT_VALUE,
     OPTION_LIVE_DATA_UPDATE_PERIOD_S_MIN_VALUE,
+    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS,
+    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -291,6 +293,7 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
                 options[OPTION_ENABLE_LIVE_DATA] = user_input[OPTION_ENABLE_LIVE_DATA]
                 if user_input[OPTION_ENABLE_LIVE_DATA]:
                     options[OPTION_LIVE_DATA_UPDATE_PERIOD_S] = user_input[OPTION_LIVE_DATA_UPDATE_PERIOD_S]
+                    options[OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS] = user_input[OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS]
                 return self.async_create_entry(title="", data=user_input)
 
         current_update_period_s = options.get(
@@ -302,6 +305,9 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
         current_live_data_update_period_s = options.get(
             OPTION_LIVE_DATA_UPDATE_PERIOD_S, OPTION_LIVE_DATA_UPDATE_PERIOD_S_DEFAULT_VALUE
         )
+        current_auto_disable_unavailable = options.get(
+            OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE
+        )
 
         schema_dict = {
             vol.Required(
@@ -312,11 +318,14 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
             ): bool,
         }
 
-        # Only show live data interval if live data is enabled
+        # Only show live data options if live data is enabled
         if current_enable_live_data:
             schema_dict[vol.Required(
                 OPTION_LIVE_DATA_UPDATE_PERIOD_S, default=current_live_data_update_period_s
             )] = int
+            schema_dict[vol.Required(
+                OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, default=current_auto_disable_unavailable
+            )] = bool
 
         return self.async_show_form(
             step_id="init",

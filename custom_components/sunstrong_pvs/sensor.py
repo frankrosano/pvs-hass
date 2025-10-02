@@ -40,7 +40,13 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE
+from .const import (
+    DOMAIN, 
+    OPTION_ENABLE_LIVE_DATA, 
+    OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE,
+    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS,
+    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE,
+)
 from .coordinator import PVSConfigEntry, PVSUpdateCoordinator
 from .entity import PVSBaseEntity
 
@@ -148,6 +154,29 @@ def _convert_timestamp_value(data: dict, var_name: str) -> datetime.datetime | N
     except (ValueError, TypeError, OSError) as e:
         _LOGGER.debug("Failed to convert timestamp %s: %s", raw_value, e)
         return None
+
+
+def _should_disable_sensor_by_default(live_data: dict, description: PVSLiveDataSensorEntityDescription) -> bool:
+    """Determine if a sensor should be disabled by default based on available data."""
+    if not live_data:
+        return False
+    
+    raw_value = live_data.get(description.var_name)
+    
+    # Disable if the raw value is 'nan', None, empty string, or '0' for certain sensors
+    if raw_value is None or raw_value == '':
+        return True
+    
+    if isinstance(raw_value, str):
+        if raw_value.lower() in ('nan', 'null'):
+            return True
+        
+        # For battery-related sensors, also disable if value is '0' (no battery)
+        if 'battery' in description.key or 'ess' in description.var_name or 'soc' in description.var_name:
+            if raw_value == '0' or raw_value == '0.0':
+                return True
+    
+    return False
 
 
 INVERTER_SENSORS = (
@@ -757,12 +786,26 @@ async def async_setup_entry(
 
     # Add live data sensors if enabled
     live_data_enabled = config_entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
-    _LOGGER.debug("Live data enabled: %s", live_data_enabled)
+    auto_disable_unavailable = config_entry.options.get(
+        OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, 
+        OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE
+    )
+    _LOGGER.debug("Live data enabled: %s, auto-disable unavailable: %s", live_data_enabled, auto_disable_unavailable)
+    
     if live_data_enabled:
-        live_data_entities = [
-            PVSLiveDataEntity(coordinator, description)
-            for description in LIVE_DATA_SENSORS
-        ]
+        live_data_entities = []
+        live_data = getattr(coordinator.pvs, 'live_data', None)
+        
+        for description in LIVE_DATA_SENSORS:
+            entity = PVSLiveDataEntity(coordinator, description)
+            
+            # Check if this sensor should be disabled by default
+            if auto_disable_unavailable and live_data and _should_disable_sensor_by_default(live_data, description):
+                entity._attr_entity_registry_enabled_default = False
+                _LOGGER.debug("Disabling sensor %s by default (no valid data)", description.key)
+            
+            live_data_entities.append(entity)
+        
         _LOGGER.debug("Adding %d live data entities", len(live_data_entities))
         entities.extend(live_data_entities)
 
