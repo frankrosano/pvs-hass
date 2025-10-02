@@ -93,6 +93,32 @@ class PVSLiveDataSensorEntityDescription(SensorEntityDescription):
     var_name: str
 
 
+def _convert_live_data_value(data: dict, var_name: str, numeric: bool = True) -> float | int | str | None:
+    """Convert live data value from string to appropriate type."""
+    raw_value = data.get(var_name)
+    if raw_value is None:
+        return None
+    
+    if not numeric:
+        return raw_value
+    
+    # Handle string values that should be numeric
+    if isinstance(raw_value, str):
+        if raw_value.lower() in ('nan', 'null', ''):
+            return None
+        try:
+            # Try to convert to float first
+            float_val = float(raw_value)
+            # Check if it's actually an integer
+            if float_val.is_integer():
+                return int(float_val)
+            return float_val
+        except (ValueError, TypeError):
+            return None
+    
+    return raw_value
+
+
 INVERTER_SENSORS = (
     PVSInverterSensorEntityDescription(
         key=CURRENT_POWER_KEY,
@@ -545,7 +571,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.POWER,
         suggested_display_precision=3,
         var_name="/sys/livedata/pv_p",
-        value_fn=lambda data: data.get("/sys/livedata/pv_p"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/pv_p"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_production_energy",
@@ -555,7 +581,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
         suggested_display_precision=3,
         var_name="/sys/livedata/pv_en",
-        value_fn=lambda data: data.get("/sys/livedata/pv_en"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/pv_en"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_net_consumption_power",
@@ -565,7 +591,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.POWER,
         suggested_display_precision=3,
         var_name="/sys/livedata/net_p",
-        value_fn=lambda data: data.get("/sys/livedata/net_p"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/net_p"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_net_consumption_energy",
@@ -575,7 +601,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
         suggested_display_precision=3,
         var_name="/sys/livedata/net_en",
-        value_fn=lambda data: data.get("/sys/livedata/net_en"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/net_en"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_site_load_power",
@@ -585,7 +611,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.POWER,
         suggested_display_precision=3,
         var_name="/sys/livedata/site_load_p",
-        value_fn=lambda data: data.get("/sys/livedata/site_load_p"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/site_load_p"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_site_load_energy",
@@ -595,7 +621,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
         suggested_display_precision=3,
         var_name="/sys/livedata/site_load_en",
-        value_fn=lambda data: data.get("/sys/livedata/site_load_en"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/site_load_en"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_battery_energy",
@@ -605,7 +631,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
         suggested_display_precision=3,
         var_name="/sys/livedata/ess_en",
-        value_fn=lambda data: data.get("/sys/livedata/ess_en"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/ess_en"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_battery_power",
@@ -615,7 +641,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.POWER,
         suggested_display_precision=3,
         var_name="/sys/livedata/ess_p",
-        value_fn=lambda data: data.get("/sys/livedata/ess_p"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/ess_p"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_battery_soc",
@@ -625,7 +651,7 @@ LIVE_DATA_SENSORS = (
         device_class=SensorDeviceClass.BATTERY,
         suggested_display_precision=1,
         var_name="/sys/livedata/soc",
-        value_fn=lambda data: data.get("/sys/livedata/soc"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/soc"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_backup_time_remaining",
@@ -634,20 +660,20 @@ LIVE_DATA_SENSORS = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.DURATION,
         var_name="/sys/livedata/backupTimeRemaining",
-        value_fn=lambda data: data.get("/sys/livedata/backupTimeRemaining"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/backupTimeRemaining"),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_mid_state",
         translation_key="live_mid_state",
         var_name="/sys/livedata/midstate",
-        value_fn=lambda data: data.get("/sys/livedata/midstate"),
+        value_fn=lambda data: _convert_live_data_value(data, "/sys/livedata/midstate", numeric=False),
     ),
     PVSLiveDataSensorEntityDescription(
         key="live_data_timestamp",
         translation_key="live_data_timestamp",
         device_class=SensorDeviceClass.TIMESTAMP,
         var_name="/sys/livedata/time",
-        value_fn=lambda data: dt_util.utc_from_timestamp(data.get("/sys/livedata/time", 0) / 1000) if data.get("/sys/livedata/time") else None,
+        value_fn=lambda data: dt_util.utc_from_timestamp(int(_convert_live_data_value(data, "/sys/livedata/time") or 0) / 1000) if _convert_live_data_value(data, "/sys/livedata/time") else None,
     ),
 )
 
