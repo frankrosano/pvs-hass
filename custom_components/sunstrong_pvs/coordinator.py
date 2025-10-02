@@ -92,8 +92,11 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._live_data_tracker = None
 
         # Set up new tracker if live data is enabled
-        if self.entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE):
+        live_data_enabled = self.entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
+        _LOGGER.debug("Setting up live data tracker, enabled: %s", live_data_enabled)
+        if live_data_enabled:
             live_data_interval = self._get_live_data_update_interval()
+            _LOGGER.debug("Live data update interval: %s", live_data_interval)
             self._live_data_tracker = async_track_time_interval(
                 self.hass,
                 self._async_update_live_data_callback,
@@ -159,6 +162,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_live_data(self) -> None:
         """Fetch live data variables from the PVS system."""
+        _LOGGER.debug("Updating live data...")
         try:
             # List of live data variables to fetch
             live_data_vars = [
@@ -178,10 +182,12 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             
             # Check if the PVS object has a method to get variables
             if hasattr(self.pvs, 'get_variables'):
+                _LOGGER.debug("Using get_variables method")
                 live_data = await self.pvs.get_variables(live_data_vars)
                 self.pvs.live_data = live_data
-                _LOGGER.debug("Live data: %s", live_data)
+                _LOGGER.debug("Live data fetched: %s", live_data)
             elif hasattr(self.pvs, 'get_variable'):
+                _LOGGER.debug("Using get_variable method (fallback)")
                 # Fallback to individual variable requests
                 live_data = {}
                 for var in live_data_vars:
@@ -192,13 +198,13 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         _LOGGER.debug("Failed to get variable %s: %s", var, e)
                         live_data[var] = None
                 self.pvs.live_data = live_data
-                _LOGGER.debug("Live data: %s", live_data)
+                _LOGGER.debug("Live data fetched: %s", live_data)
             else:
-                _LOGGER.debug("PVS object does not support variable access")
+                _LOGGER.warning("PVS object does not support variable access methods")
                 self.pvs.live_data = None
                 
         except Exception as e:
-            _LOGGER.debug("Failed to fetch live data: %s", e)
+            _LOGGER.error("Failed to fetch live data: %s", e)
             self.pvs.live_data = None
 
     async def async_shutdown(self) -> None:
@@ -207,3 +213,9 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._live_data_tracker()
             self._live_data_tracker = None
         await super().async_shutdown()
+
+    @callback
+    def async_update_options(self) -> None:
+        """Update options and reconfigure live data tracking."""
+        self.update_interval = self._get_update_interval()
+        self._async_setup_live_data_tracker()

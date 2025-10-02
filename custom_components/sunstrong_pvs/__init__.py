@@ -44,12 +44,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: PVSConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Set up options update listener
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
+
     return True
+
+
+async def async_update_options(hass: HomeAssistant, entry: PVSConfigEntry) -> None:
+    """Update options."""
+    coordinator: PVSUpdateCoordinator = entry.runtime_data
+    coordinator.async_update_options()
+    # Reload the integration to apply new sensor configuration
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: PVSConfigEntry) -> bool:
     """Unload a config entry."""
     coordinator: PVSUpdateCoordinator = entry.runtime_data
+    await coordinator.async_shutdown()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

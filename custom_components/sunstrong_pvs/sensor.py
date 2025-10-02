@@ -698,13 +698,16 @@ async def async_setup_entry(
             for transfer_switch in pvs_data.transfer_switches.values()
         )
 
-    # Add live data sensors if enabled and available
-    if (config_entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE) and
-        hasattr(coordinator.pvs, 'live_data') and coordinator.pvs.live_data):
-        entities.extend(
+    # Add live data sensors if enabled
+    live_data_enabled = config_entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
+    _LOGGER.debug("Live data enabled: %s", live_data_enabled)
+    if live_data_enabled:
+        live_data_entities = [
             PVSLiveDataEntity(coordinator, description)
             for description in LIVE_DATA_SENSORS
-        )
+        ]
+        _LOGGER.debug("Adding %d live data entities", len(live_data_entities))
+        entities.extend(live_data_entities)
 
     async_add_entities(entities)
 
@@ -939,3 +942,11 @@ class PVSLiveDataEntity(PVSSensorBaseEntity):
         if live_data is None:
             return None
         return self.entity_description.value_fn(live_data)
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return (
+            super().available and 
+            getattr(self.coordinator.pvs, 'live_data', None) is not None
+        )
