@@ -40,7 +40,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import DOMAIN, OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE
 from .coordinator import PVSConfigEntry, PVSUpdateCoordinator
 from .entity import PVSBaseEntity
 
@@ -83,6 +83,14 @@ class PVSTransferSwitchSensorEntityDescription(SensorEntityDescription):
     """Describes a MIDC transfer switch sensor entity."""
 
     value_fn: Callable[[PVSTransferSwitch], float | int | str | None]
+
+
+@dataclass(frozen=True, kw_only=True)
+class PVSLiveDataSensorEntityDescription(SensorEntityDescription):
+    """Describes a PVS live data sensor entity."""
+
+    value_fn: Callable[[dict], float | int | str | None]
+    var_name: str
 
 
 INVERTER_SENSORS = (
@@ -528,6 +536,121 @@ TRANSFER_SWITCH_SENSORS = (
     ),
 )
 
+LIVE_DATA_SENSORS = (
+    PVSLiveDataSensorEntityDescription(
+        key="live_production_power",
+        translation_key="live_production_power",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/pv_p",
+        value_fn=lambda data: data.get("/sys/livedata/pv_p"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_production_energy",
+        translation_key="live_production_energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/pv_en",
+        value_fn=lambda data: data.get("/sys/livedata/pv_en"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_net_consumption_power",
+        translation_key="live_net_consumption_power",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/net_p",
+        value_fn=lambda data: data.get("/sys/livedata/net_p"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_net_consumption_energy",
+        translation_key="live_net_consumption_energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/net_en",
+        value_fn=lambda data: data.get("/sys/livedata/net_en"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_site_load_power",
+        translation_key="live_site_load_power",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/site_load_p",
+        value_fn=lambda data: data.get("/sys/livedata/site_load_p"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_site_load_energy",
+        translation_key="live_site_load_energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/site_load_en",
+        value_fn=lambda data: data.get("/sys/livedata/site_load_en"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_battery_energy",
+        translation_key="live_battery_energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/ess_en",
+        value_fn=lambda data: data.get("/sys/livedata/ess_en"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_battery_power",
+        translation_key="live_battery_power",
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.POWER,
+        suggested_display_precision=3,
+        var_name="/sys/livedata/ess_p",
+        value_fn=lambda data: data.get("/sys/livedata/ess_p"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_battery_soc",
+        translation_key="live_battery_soc",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.BATTERY,
+        suggested_display_precision=1,
+        var_name="/sys/livedata/soc",
+        value_fn=lambda data: data.get("/sys/livedata/soc"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_backup_time_remaining",
+        translation_key="live_backup_time_remaining",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.DURATION,
+        var_name="/sys/livedata/backupTimeRemaining",
+        value_fn=lambda data: data.get("/sys/livedata/backupTimeRemaining"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_mid_state",
+        translation_key="live_mid_state",
+        var_name="/sys/livedata/midstate",
+        value_fn=lambda data: data.get("/sys/livedata/midstate"),
+    ),
+    PVSLiveDataSensorEntityDescription(
+        key="live_data_timestamp",
+        translation_key="live_data_timestamp",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        var_name="/sys/livedata/time",
+        value_fn=lambda data: dt_util.utc_from_timestamp(data.get("/sys/livedata/time", 0) / 1000) if data.get("/sys/livedata/time") else None,
+    ),
+)
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: PVSConfigEntry,
@@ -573,6 +696,14 @@ async def async_setup_entry(
             PVSTransferSwitchEntity(coordinator, description, transfer_switch)
             for description in TRANSFER_SWITCH_SENSORS
             for transfer_switch in pvs_data.transfer_switches.values()
+        )
+
+    # Add live data sensors if enabled and available
+    if (config_entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE) and
+        hasattr(coordinator.pvs, 'live_data') and coordinator.pvs.live_data):
+        entities.extend(
+            PVSLiveDataEntity(coordinator, description)
+            for description in LIVE_DATA_SENSORS
         )
 
     async_add_entities(entities)
@@ -778,3 +909,33 @@ class PVSTransferSwitchEntity(PVSSensorBaseEntity):
             )
             return None
         return self.entity_description.value_fn(transfer_switches[self._serial_number])
+
+
+class PVSLiveDataEntity(PVSSensorBaseEntity):
+    """PVS live data entity."""
+
+    entity_description: PVSLiveDataSensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: PVSUpdateCoordinator,
+        description: PVSLiveDataSensorEntityDescription,
+    ) -> None:
+        """Initialize a PVS live data entity."""
+        super().__init__(coordinator, description)
+        self._attr_unique_id = f"{self.pvs_serial_num}_{description.key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self.pvs_serial_num)},
+            manufacturer="SunStrong Management",
+            model="PVS Gateway",
+            name="PVS Live Data",
+            via_device=(DOMAIN, self.pvs_serial_num),
+        )
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the state of the sensor."""
+        live_data = getattr(self.coordinator.pvs, 'live_data', None)
+        if live_data is None:
+            return None
+        return self.entity_description.value_fn(live_data)
