@@ -163,6 +163,8 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_live_data(self) -> None:
         """Fetch live data variables from the PVS system."""
         _LOGGER.debug("Updating live data...")
+        _LOGGER.debug("Available PVS methods: %s", [method for method in dir(self.pvs) if not method.startswith('_')])
+        
         try:
             # List of live data variables to fetch
             live_data_vars = [
@@ -180,7 +182,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "/sys/livedata/midstate",
             ]
             
-            # Check if the PVS object has a method to get variables
+            # Check different possible methods for accessing variables
             if hasattr(self.pvs, 'get_variables'):
                 _LOGGER.debug("Using get_variables method")
                 live_data = await self.pvs.get_variables(live_data_vars)
@@ -199,9 +201,36 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         live_data[var] = None
                 self.pvs.live_data = live_data
                 _LOGGER.debug("Live data fetched: %s", live_data)
+            elif hasattr(self.pvs, 'get_var'):
+                _LOGGER.debug("Using get_var method")
+                live_data = {}
+                for var in live_data_vars:
+                    try:
+                        value = await self.pvs.get_var(var)
+                        live_data[var] = value
+                    except Exception as e:
+                        _LOGGER.debug("Failed to get variable %s: %s", var, e)
+                        live_data[var] = None
+                self.pvs.live_data = live_data
+                _LOGGER.debug("Live data fetched: %s", live_data)
+            elif hasattr(self.pvs, 'request'):
+                _LOGGER.debug("Using request method")
+                # Try using a direct request method if available
+                live_data = {}
+                for var in live_data_vars:
+                    try:
+                        response = await self.pvs.request(f"GET {var}")
+                        live_data[var] = response
+                    except Exception as e:
+                        _LOGGER.debug("Failed to get variable %s: %s", var, e)
+                        live_data[var] = None
+                self.pvs.live_data = live_data
+                _LOGGER.debug("Live data fetched: %s", live_data)
             else:
                 _LOGGER.warning("PVS object does not support variable access methods")
-                self.pvs.live_data = None
+                _LOGGER.debug("Available methods: %s", [attr for attr in dir(self.pvs) if callable(getattr(self.pvs, attr)) and not attr.startswith('_')])
+                # For now, create empty live data to make sensors available but with no values
+                self.pvs.live_data = {var: None for var in live_data_vars}
                 
         except Exception as e:
             _LOGGER.error("Failed to fetch live data: %s", e)

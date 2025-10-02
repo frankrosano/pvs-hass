@@ -946,7 +946,6 @@ class PVSLiveDataEntity(PVSSensorBaseEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return (
-            super().available and 
-            getattr(self.coordinator.pvs, 'live_data', None) is not None
-        )
+        # Show as available if live data dict exists, even if values are None
+        live_data = getattr(self.coordinator.pvs, 'live_data', None)
+        return super().available and live_data is not None
