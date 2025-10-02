@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import datetime
 from datetime import timedelta
+import json
 import logging
 from typing import Any
 
+import aiohttp
 from pypvs.pvs import PVS
 from pypvs.exceptions import PVSError, PVSAuthenticationError
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_PASSWORD
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.event import async_track_time_interval
@@ -55,6 +58,9 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._setup_complete = False
         self.pvs_firmware = ""
         self._live_data_tracker: CALLBACK_TYPE | None = None
+        self._websocket_session: aiohttp.ClientSession | None = None
+        self._websocket_connection: aiohttp.ClientWebSocketResponse | None = None
+        self._websocket_task: Any = None
 
         super().__init__(
             hass,
@@ -69,13 +75,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         scan_interval_s = self.entry.options.get(OPTION_UPDATE_PERIOD_S, OPTION_UPDATE_PERIOD_S_DEFAULT_VALUE)
         return timedelta(seconds=scan_interval_s)
 
-    def _get_live_data_update_interval(self) -> timedelta:
-        """Get live data update interval."""
-        scan_interval_s = self.entry.options.get(
-            OPTION_LIVE_DATA_UPDATE_PERIOD_S, 
-            OPTION_LIVE_DATA_UPDATE_PERIOD_S_DEFAULT_VALUE
-        )
-        return timedelta(seconds=scan_interval_s)
+
 
     @callback
     def _async_mark_setup_complete(self) -> None:
@@ -86,36 +86,30 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @callback
     def _async_setup_live_data_tracker(self) -> None:
         """Set up live data tracking if enabled."""
-        # Cancel existing tracker
-        if self._live_data_tracker:
-            self._live_data_tracker()
-            self._live_data_tracker = None
+        # Cancel existing tracker/websocket
+        self._async_stop_live_data_tracking()
 
         # Set up new tracker if live data is enabled
         live_data_enabled = self.entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
         _LOGGER.debug("Setting up live data tracker, enabled: %s", live_data_enabled)
         if live_data_enabled:
-            live_data_interval = self._get_live_data_update_interval()
-            _LOGGER.debug("Live data update interval: %s", live_data_interval)
-            self._live_data_tracker = async_track_time_interval(
-                self.hass,
-                self._async_update_live_data_callback,
-                live_data_interval,
-            )
+            # Start WebSocket connection for live data
+            self._websocket_task = self.hass.async_create_task(self._async_start_websocket())
 
     @callback
-    def _async_update_live_data_callback(self, now: datetime.datetime) -> None:
-        """Callback for live data updates."""
-        self.hass.async_create_task(self._async_update_live_data_only())
+    def _async_stop_live_data_tracking(self) -> None:
+        """Stop live data tracking."""
+        # Cancel polling tracker if it exists
+        if self._live_data_tracker:
+            self._live_data_tracker()
+            self._live_data_tracker = None
+        
+        # Cancel WebSocket task if it exists
+        if self._websocket_task and not self._websocket_task.done():
+            self._websocket_task.cancel()
+            self._websocket_task = None
 
-    async def _async_update_live_data_only(self) -> None:
-        """Update only live data without triggering full coordinator update."""
-        if not self._setup_complete:
-            return
-            
-        await self._async_update_live_data()
-        # Notify listeners that live data has been updated
-        self.async_update_listeners()
+
 
     async def _async_setup_and_authenticate(self) -> None:
         """Set up and authenticate with the PVS."""
@@ -160,62 +154,121 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         raise RuntimeError("Unreachable code in _async_update_data")  # pragma: no cover
 
-    async def _async_update_live_data(self) -> None:
-        """Fetch live data variables from the PVS system."""
-        _LOGGER.debug("Updating live data...")
-        _LOGGER.debug("Available PVS methods: %s", [method for method in dir(self.pvs) if not method.startswith('_')])
+    async def _async_start_websocket(self) -> None:
+        """Start WebSocket connection for live data."""
+        host = self.entry.data.get(CONF_HOST)
+        websocket_url = f"ws://{host}:9001"
         
-        try:
-            # Use the correct pypvs method to get all live data variables at once
-            if hasattr(self.pvs, 'getVarserverVars'):
-                _LOGGER.debug("Using getVarserverVars method to fetch live data")
-                live_data = await self.pvs.getVarserverVars("/sys/livedata")
-                self.pvs.live_data = live_data
-                _LOGGER.info("Live data fetched successfully: %s", live_data)
-            elif hasattr(self.pvs, 'getVarserverVar'):
-                _LOGGER.debug("Using getVarserverVar method (individual requests)")
-                # Fallback to individual variable requests
-                live_data_vars = [
-                    "/sys/livedata/time",
-                    "/sys/livedata/pv_p",
-                    "/sys/livedata/pv_en",
-                    "/sys/livedata/net_p",
-                    "/sys/livedata/net_en",
-                    "/sys/livedata/site_load_p",
-                    "/sys/livedata/site_load_en",
-                    "/sys/livedata/ess_en",
-                    "/sys/livedata/ess_p",
-                    "/sys/livedata/soc",
-                    "/sys/livedata/backupTimeRemaining",
-                    "/sys/livedata/midstate",
-                ]
+        _LOGGER.info("Starting WebSocket connection to %s", websocket_url)
+        
+        while True:
+            try:
+                if not self._websocket_session:
+                    self._websocket_session = aiohttp.ClientSession()
                 
-                live_data = {}
-                for var in live_data_vars:
-                    try:
-                        value = await self.pvs.getVarserverVar(var)
-                        live_data[var] = value
-                        _LOGGER.debug("Got variable %s = %s", var, value)
-                    except Exception as e:
-                        _LOGGER.warning("Failed to get variable %s: %s", var, e)
-                        live_data[var] = None
-                self.pvs.live_data = live_data
-                _LOGGER.info("Live data fetched via individual requests: %s", live_data)
-            else:
-                _LOGGER.error("PVS object does not support varserver methods")
-                _LOGGER.error("Available methods: %s", [attr for attr in dir(self.pvs) if callable(getattr(self.pvs, attr)) and not attr.startswith('_')])
-                # Create empty live data to make sensors available but with no values
-                self.pvs.live_data = {}
+                async with self._websocket_session.ws_connect(
+                    websocket_url,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                    heartbeat=30,
+                ) as ws:
+                    self._websocket_connection = ws
+                    _LOGGER.info("WebSocket connected successfully")
+                    
+                    # Initialize empty live data
+                    if not hasattr(self.pvs, 'live_data'):
+                        self.pvs.live_data = {}
+                    
+                    async for msg in ws:
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            try:
+                                data = json.loads(msg.data)
+                                await self._process_websocket_message(data)
+                            except json.JSONDecodeError as e:
+                                _LOGGER.debug("Failed to parse WebSocket message: %s", e)
+                        elif msg.type == aiohttp.WSMsgType.ERROR:
+                            _LOGGER.error("WebSocket error: %s", ws.exception())
+                            break
+                        elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED):
+                            _LOGGER.info("WebSocket connection closed")
+                            break
+                            
+            except Exception as e:
+                _LOGGER.error("WebSocket connection failed: %s", e)
                 
-        except Exception as e:
-            _LOGGER.error("Failed to fetch live data: %s", e, exc_info=True)
-            self.pvs.live_data = None
+            # Clean up connection
+            self._websocket_connection = None
+            
+            # Wait before reconnecting (unless we're shutting down)
+            if not self._setup_complete:
+                break
+                
+            _LOGGER.info("Reconnecting WebSocket in 10 seconds...")
+            await asyncio.sleep(10)
+
+    async def _process_websocket_message(self, data: dict) -> None:
+        """Process incoming WebSocket message."""
+        if data.get("notification") == "power" and "params" in data:
+            params = data["params"]
+            
+            # Convert WebSocket data format to the expected live data format
+            live_data = {}
+            
+            # Map WebSocket fields to live data variable names
+            field_mapping = {
+                "time": "/sys/livedata/time",
+                "pv_p": "/sys/livedata/pv_p", 
+                "pv_en": "/sys/livedata/pv_en",
+                "net_p": "/sys/livedata/net_p",
+                "net_en": "/sys/livedata/net_en", 
+                "site_load_p": "/sys/livedata/site_load_p",
+                "site_load_en": "/sys/livedata/site_load_en",
+            }
+            
+            # Convert WebSocket data to live data format
+            for ws_field, live_data_var in field_mapping.items():
+                if ws_field in params:
+                    live_data[live_data_var] = str(params[ws_field])
+            
+            # Add missing fields with default values (for sensors that aren't in WebSocket)
+            missing_fields = {
+                "/sys/livedata/ess_en": "nan",
+                "/sys/livedata/ess_p": "nan", 
+                "/sys/livedata/soc": "nan",
+                "/sys/livedata/backupTimeRemaining": "0",
+                "/sys/livedata/midstate": "0",
+            }
+            
+            for field, default_value in missing_fields.items():
+                if field not in live_data:
+                    live_data[field] = default_value
+            
+            # Update live data
+            self.pvs.live_data = live_data
+            
+            # Notify listeners that live data has been updated
+            self.async_update_listeners()
+            
+            _LOGGER.debug("WebSocket live data updated: %s", live_data)
+
+    async def _async_update_live_data(self) -> None:
+        """Legacy method - now handled by WebSocket."""
+        # This method is kept for compatibility but WebSocket handles live data now
+        _LOGGER.debug("Live data updates now handled by WebSocket")
+        pass
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator."""
-        if self._live_data_tracker:
-            self._live_data_tracker()
-            self._live_data_tracker = None
+        # Stop live data tracking
+        self._async_stop_live_data_tracking()
+        
+        # Close WebSocket connection
+        if self._websocket_connection and not self._websocket_connection.closed:
+            await self._websocket_connection.close()
+            
+        # Close WebSocket session
+        if self._websocket_session and not self._websocket_session.closed:
+            await self._websocket_session.close()
+            
         await super().async_shutdown()
 
     @callback

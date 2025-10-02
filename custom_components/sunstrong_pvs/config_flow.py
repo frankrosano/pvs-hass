@@ -285,14 +285,10 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
         if user_input is not None:
             if user_input[OPTION_UPDATE_PERIOD_S] < OPTION_UPDATE_PERIOD_S_MIN_VALUE:
                 errors[OPTION_UPDATE_PERIOD_S] = "MIN_INTERVAL"
-            if (user_input.get(OPTION_ENABLE_LIVE_DATA, False) and 
-                user_input.get(OPTION_LIVE_DATA_UPDATE_PERIOD_S, 0) < OPTION_LIVE_DATA_UPDATE_PERIOD_S_MIN_VALUE):
-                errors[OPTION_LIVE_DATA_UPDATE_PERIOD_S] = "MIN_INTERVAL"
             if len(errors) == 0:
                 options[OPTION_UPDATE_PERIOD_S] = user_input[OPTION_UPDATE_PERIOD_S]
                 options[OPTION_ENABLE_LIVE_DATA] = user_input[OPTION_ENABLE_LIVE_DATA]
                 if user_input[OPTION_ENABLE_LIVE_DATA]:
-                    options[OPTION_LIVE_DATA_UPDATE_PERIOD_S] = user_input[OPTION_LIVE_DATA_UPDATE_PERIOD_S]
                     options[OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS] = user_input[OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS]
                 return self.async_create_entry(title="", data=user_input)
 
@@ -301,9 +297,6 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
         )
         current_enable_live_data = options.get(
             OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE
-        )
-        current_live_data_update_period_s = options.get(
-            OPTION_LIVE_DATA_UPDATE_PERIOD_S, OPTION_LIVE_DATA_UPDATE_PERIOD_S_DEFAULT_VALUE
         )
         current_auto_disable_unavailable = options.get(
             OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE
@@ -320,9 +313,6 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
 
         # Only show live data options if live data is enabled
         if current_enable_live_data:
-            schema_dict[vol.Required(
-                OPTION_LIVE_DATA_UPDATE_PERIOD_S, default=current_live_data_update_period_s
-            )] = int
             schema_dict[vol.Required(
                 OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, default=current_auto_disable_unavailable
             )] = bool
