@@ -827,9 +827,9 @@ class PVSGatewayEntity(PVSSensorBaseEntity):
     ) -> None:
         """Initialize a PVS gateway entity."""
         super().__init__(coordinator, description)
-        self._attr_unique_id = f"{self.pvs_serial_num}_{description.key}"
+        self._attr_unique_id = f"{self.pvs_serial_num}_gateway_{description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.pvs_serial_num)},
+            identifiers={(DOMAIN, f"{self.pvs_serial_num}_gateway")},
             connections={(CONNECTION_NETWORK_MAC, gateway.mac)},
             manufacturer="SunStrong Management",
             model=gateway.model,
@@ -1026,13 +1026,13 @@ class PVSLiveDataEntity(PVSSensorBaseEntity):
     ) -> None:
         """Initialize a PVS live data entity."""
         super().__init__(coordinator, description)
-        self._attr_unique_id = f"{self.pvs_serial_num}_{description.key}"
+        self._attr_unique_id = f"{self.pvs_serial_num}_livedata_{description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.pvs_serial_num)},
+            identifiers={(DOMAIN, f"{self.pvs_serial_num}_livedata")},
             manufacturer="SunStrong Management",
-            model="PVS Gateway",
+            model="PVS Live Data",
             name="PVS Live Data",
-            via_device=(DOMAIN, self.pvs_serial_num),
+            via_device=(DOMAIN, f"{self.pvs_serial_num}_gateway"),
         )
 
     @property

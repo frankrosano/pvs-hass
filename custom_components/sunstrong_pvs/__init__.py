@@ -73,8 +73,15 @@ async def async_remove_config_entry_device(
     coordinator = config_entry.runtime_data
     pvs_data = coordinator.pvs.data
     pvs_serial_num = config_entry.unique_id
-    if pvs_serial_num in dev_ids:
+    
+    # Check for main gateway device
+    if f"{pvs_serial_num}_gateway" in dev_ids:
         return False
+    
+    # Check for live data device
+    if f"{pvs_serial_num}_livedata" in dev_ids:
+        return False
+    
     if pvs_data:
         if pvs_data.inverters:
             for inverter in pvs_data.inverters:
@@ -92,7 +99,4 @@ async def async_remove_config_entry_device(
             for switch in pvs_data.transfer_switches:
                 if str(switch) in dev_ids:
                     return False
-        # if pvs_data.gateway:
-        #     if str(pvs_data.serial_number) in dev_ids:
-        #         return False
     return True
