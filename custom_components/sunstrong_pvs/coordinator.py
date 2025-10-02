@@ -209,38 +209,38 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Process incoming WebSocket message."""
         if data.get("notification") == "power" and "params" in data:
             params = data["params"]
+            _LOGGER.debug("WebSocket received params: %s", params)
             
-            # Convert WebSocket data format to the expected live data format
-            live_data = {}
-            
-            # Map WebSocket fields to live data variable names
-            field_mapping = {
+            # All livedata variables from the CSV (WebSocket field -> full path)
+            # In WebSocket, /sys/livedata/ is truncated, so we map the short names
+            all_livedata_fields = {
                 "time": "/sys/livedata/time",
-                "pv_p": "/sys/livedata/pv_p", 
-                "pv_en": "/sys/livedata/pv_en",
+                "pv_p": "/sys/livedata/pv_p",
+                "pv_en": "/sys/livedata/pv_en", 
                 "net_p": "/sys/livedata/net_p",
-                "net_en": "/sys/livedata/net_en", 
+                "net_en": "/sys/livedata/net_en",
                 "site_load_p": "/sys/livedata/site_load_p",
                 "site_load_en": "/sys/livedata/site_load_en",
+                "ess_en": "/sys/livedata/ess_en",
+                "ess_p": "/sys/livedata/ess_p",
+                "soc": "/sys/livedata/soc",
+                "backupTimeRemaining": "/sys/livedata/backupTimeRemaining",
+                "midstate": "/sys/livedata/midstate",
             }
             
             # Convert WebSocket data to live data format
-            for ws_field, live_data_var in field_mapping.items():
+            live_data = {}
+            for ws_field, live_data_var in all_livedata_fields.items():
                 if ws_field in params:
                     live_data[live_data_var] = str(params[ws_field])
-            
-            # Add missing fields with default values (for sensors that aren't in WebSocket)
-            missing_fields = {
-                "/sys/livedata/ess_en": "nan",
-                "/sys/livedata/ess_p": "nan", 
-                "/sys/livedata/soc": "nan",
-                "/sys/livedata/backupTimeRemaining": "0",
-                "/sys/livedata/midstate": "0",
-            }
-            
-            for field, default_value in missing_fields.items():
-                if field not in live_data:
-                    live_data[field] = default_value
+                else:
+                    # Set appropriate default values for missing fields
+                    if ws_field in ["ess_en", "ess_p", "soc"]:
+                        live_data[live_data_var] = "nan"  # Battery fields default to nan
+                    elif ws_field in ["backupTimeRemaining", "midstate"]:
+                        live_data[live_data_var] = "0"    # Numeric fields default to 0
+                    else:
+                        live_data[live_data_var] = None   # Other fields default to None
             
             # Update live data
             self.pvs.live_data = live_data
