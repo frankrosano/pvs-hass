@@ -157,7 +157,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_start_websocket(self) -> None:
         """Start WebSocket connection for live data."""
         host = self.entry.data.get(CONF_HOST)
-        websocket_url = f"ws://{host}:9001"
+        websocket_url = f"ws://{host}:9002"
         
         _LOGGER.info("Starting WebSocket connection to %s", websocket_url)
         
