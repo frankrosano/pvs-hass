@@ -235,10 +235,8 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     live_data[live_data_var] = str(params[ws_field])
                 else:
                     # Set appropriate default values for missing fields
-                    if ws_field in ["ess_en", "ess_p", "soc"]:
-                        live_data[live_data_var] = "nan"  # Battery fields default to nan
-                    elif ws_field in ["backupTimeRemaining", "midstate"]:
-                        live_data[live_data_var] = "0"    # Numeric fields default to 0
+                    if ws_field in ["ess_en", "ess_p", "soc", "backupTimeRemaining", "midstate"]:
+                        live_data[live_data_var] = "nan"  # Battery/MID fields default to nan (will be auto-disabled)
                     else:
                         live_data[live_data_var] = None   # Other fields default to None
             

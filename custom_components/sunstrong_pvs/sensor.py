@@ -172,7 +172,11 @@ def _should_disable_sensor_by_default(live_data: dict, description: PVSLiveDataS
             return True
         
         # For battery-related sensors, also disable if value is '0' (no battery)
-        if 'battery' in description.key or 'ess' in description.var_name or 'soc' in description.var_name:
+        if ('battery' in description.key or 
+            'ess' in description.var_name or 
+            'soc' in description.var_name or
+            'mid' in description.key.lower() or  # MID state sensors
+            'midstate' in description.var_name):  # MID state variable
             if raw_value == '0' or raw_value == '0.0':
                 return True
     
