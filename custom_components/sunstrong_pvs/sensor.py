@@ -119,6 +119,37 @@ def _convert_live_data_value(data: dict, var_name: str, numeric: bool = True) ->
     return raw_value
 
 
+def _convert_timestamp_value(data: dict, var_name: str) -> datetime.datetime | None:
+    """Convert timestamp value to datetime, handling different formats."""
+    raw_value = _convert_live_data_value(data, var_name)
+    if raw_value is None:
+        return None
+    
+    try:
+        timestamp = int(raw_value)
+        
+        # Check if this looks like a reasonable Unix timestamp
+        # Unix timestamps should be between 1970 and ~2038 for 32-bit
+        # Current time is around 1.7 billion seconds since epoch
+        current_time = dt_util.utcnow().timestamp()
+        
+        # If the timestamp is way in the future, it might be milliseconds
+        if timestamp > current_time + (365 * 24 * 3600):  # More than 1 year in future
+            _LOGGER.debug("Timestamp %s seems too far in future, trying as milliseconds", timestamp)
+            timestamp = timestamp / 1000
+        
+        # If still unreasonable, it might be some other format
+        if timestamp < 0 or timestamp > current_time + (365 * 24 * 3600):
+            _LOGGER.warning("Timestamp %s doesn't look like a valid Unix timestamp", raw_value)
+            return None
+            
+        return dt_util.utc_from_timestamp(timestamp)
+        
+    except (ValueError, TypeError, OSError) as e:
+        _LOGGER.debug("Failed to convert timestamp %s: %s", raw_value, e)
+        return None
+
+
 INVERTER_SENSORS = (
     PVSInverterSensorEntityDescription(
         key=CURRENT_POWER_KEY,
@@ -673,7 +704,7 @@ LIVE_DATA_SENSORS = (
         translation_key="live_data_timestamp",
         device_class=SensorDeviceClass.TIMESTAMP,
         var_name="/sys/livedata/time",
-        value_fn=lambda data: dt_util.utc_from_timestamp(int(_convert_live_data_value(data, "/sys/livedata/time") or 0) / 1000) if _convert_live_data_value(data, "/sys/livedata/time") else None,
+        value_fn=lambda data: _convert_timestamp_value(data, "/sys/livedata/time"),
     ),
 )
 
