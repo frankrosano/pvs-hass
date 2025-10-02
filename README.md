@@ -2,10 +2,25 @@
 
 Home Assistant SunStrong Management (former Sunpower) PVS Integration.
 
-Based on https://github.com/krbaker/hass-sunpower
-and https://www.home-assistant.io/integrations/enphase_envoy/
-
 <img width="1597" height="1610" alt="localhost_8123_lovelace_0" src="https://github.com/user-attachments/assets/f305506b-15f4-43cd-905b-6e3eadf5a43b" />
+
+## Overview
+
+This integration allows you to monitor a PVS system via a companion Python library `pypvs`. The latter accesses
+an instance of `varserver` running on the PVS via the recently made available PVS FCGI API. The user has access to a list
+of publicly available varserver variables for telemetry and basic information about the PVS.
+
+More information about the varserver platform is available at https://github.com/tjmonk/varserver.
+The `pypvs` library is available at https://github.com/SunStrong-Management/pypvs.
+
+## Prerequisites
+
+- A recent installation of Home Assistant
+- HACS (Home Assistant Community Store) installed
+- The PVS connected to your network via Wi-Fi or Ethernet
+
+Please note that previous workarounds using an intermediate device connected to the LAN port of the PVS are not needed,
+and probably should be removed altogether.
 
 ## Installation
 
@@ -131,3 +146,14 @@ clearing caches or using another browser.
 [mppt]: https://en.wikipedia.org/wiki/Maximum_power_point_tracking
 [power-factor]: https://en.wikipedia.org/wiki/Power_factor
 [sunpower-us]: https://us.sunpower.com/products/solar-panels
+
+## Credits
+
+This integration is based on the work of the following projects:
+
+- [krbaker/hass-sunpower](https://github.com/krbaker/hass-sunpower)
+- [home-assistant/integration-enphase_envoy](https://www.home-assistant.io/integrations/enphase_envoy/)
+
+Please note that this integration is not a continuation of the above projects, but rather a separate implementation inspired by them.
+Thus, transitioning, for example, from the `hass-sunpower` integration is not possible, and users will need to just use this
+integration as a replacement.
