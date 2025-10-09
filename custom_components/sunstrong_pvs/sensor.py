@@ -734,6 +734,7 @@ LIVE_DATA_SENSORS = (
         key="live_data_timestamp",
         translation_key="live_data_timestamp",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_registry_enabled_default=False,
         var_name="/sys/livedata/time",
         value_fn=lambda data: _convert_timestamp_value(data, "/sys/livedata/time"),
     ),
