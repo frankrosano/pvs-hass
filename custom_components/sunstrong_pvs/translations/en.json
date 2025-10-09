@@ -206,8 +206,7 @@
       "init": {
         "data": {
           "update_period_s": "Data update interval (seconds)",
-          "enable_live_data": "Enable live data sensors (WebSocket)",
-          "auto_disable_unavailable_sensors": "Auto-disable sensors with no data (e.g., battery sensors when no battery is present)"
+          "enable_live_data": "Enable live data sensors (WebSocket)"
         }
       }
     }

@@ -44,8 +44,6 @@ from .const import (
     DOMAIN, 
     OPTION_ENABLE_LIVE_DATA, 
     OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE,
-    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS,
-    OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE,
 )
 from .coordinator import PVSConfigEntry, PVSUpdateCoordinator
 from .entity import PVSBaseEntity
@@ -790,11 +788,7 @@ async def async_setup_entry(
 
     # Add live data sensors if enabled
     live_data_enabled = config_entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
-    auto_disable_unavailable = config_entry.options.get(
-        OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS, 
-        OPTION_AUTO_DISABLE_UNAVAILABLE_SENSORS_DEFAULT_VALUE
-    )
-    _LOGGER.debug("Live data enabled: %s, auto-disable unavailable: %s", live_data_enabled, auto_disable_unavailable)
+    _LOGGER.debug("Live data enabled: %s", live_data_enabled)
     
     if live_data_enabled:
         live_data_entities = []
@@ -803,10 +797,10 @@ async def async_setup_entry(
         for description in LIVE_DATA_SENSORS:
             entity = PVSLiveDataEntity(coordinator, description)
             
-            # Check if this sensor should be disabled by default
-            if auto_disable_unavailable and live_data and _should_disable_sensor_by_default(live_data, description):
+            # Auto-disable sensors with no valid data (standard behavior)
+            if live_data and _should_disable_sensor_by_default(live_data, description):
                 entity._attr_entity_registry_enabled_default = False
-                _LOGGER.debug("Disabling sensor %s by default (no valid data)", description.key)
+                _LOGGER.debug("Auto-disabling sensor %s (no valid data)", description.key)
             
             live_data_entities.append(entity)
         
