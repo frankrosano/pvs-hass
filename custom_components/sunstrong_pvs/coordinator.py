@@ -15,7 +15,7 @@ from pypvs.pvs import PVS
 from pypvs.exceptions import PVSError, PVSAuthenticationError
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.event import async_track_time_interval
@@ -61,6 +61,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._websocket_session: aiohttp.ClientSession | None = None
         self._websocket_connection: aiohttp.ClientWebSocketResponse | None = None
         self._websocket_task: Any = None
+        self._stop_listener: CALLBACK_TYPE | None = None
 
         super().__init__(
             hass,
@@ -68,6 +69,11 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name=entry_data[CONF_NAME],
             update_interval=self._get_update_interval(),
             always_update=False,
+        )
+        
+        # Listen for Home Assistant stop event to ensure cleanup
+        self._stop_listener = hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STOP, self._async_ha_stop_listener
         )
 
     def _get_update_interval(self) -> timedelta:
@@ -265,18 +271,66 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator."""
+        _LOGGER.debug("Shutting down PVS coordinator")
+        
+        # Stop live data tracking (cancels WebSocket task)
+        self._async_stop_live_data_tracking()
+        
+        # Wait for WebSocket task to complete cancellation
+        if self._websocket_task and not self._websocket_task.done():
+            try:
+                await asyncio.wait_for(self._websocket_task, timeout=2.0)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass  # Expected when cancelling
+        
+        # Close WebSocket connection
+        if self._websocket_connection and not self._websocket_connection.closed:
+            try:
+                await self._websocket_connection.close()
+                _LOGGER.debug("WebSocket connection closed")
+            except Exception as e:
+                _LOGGER.debug("Error closing WebSocket connection: %s", e)
+            
+        # Close WebSocket session
+        if self._websocket_session and not self._websocket_session.closed:
+            try:
+                await self._websocket_session.close()
+                _LOGGER.debug("WebSocket session closed")
+            except Exception as e:
+                _LOGGER.debug("Error closing WebSocket session: %s", e)
+            
+        # Remove stop listener
+        if self._stop_listener:
+            self._stop_listener()
+            self._stop_listener = None
+            
+        await super().async_shutdown()
+        _LOGGER.debug("PVS coordinator shutdown complete")
+
+    @callback
+    def _async_ha_stop_listener(self, event) -> None:
+        """Handle Home Assistant stop event."""
+        _LOGGER.debug("Home Assistant stopping, cleaning up WebSocket")
+        self.hass.async_create_task(self._async_cleanup_websocket())
+
+    async def _async_cleanup_websocket(self) -> None:
+        """Clean up WebSocket connection."""
         # Stop live data tracking
         self._async_stop_live_data_tracking()
         
         # Close WebSocket connection
         if self._websocket_connection and not self._websocket_connection.closed:
-            await self._websocket_connection.close()
+            try:
+                await self._websocket_connection.close()
+            except Exception:
+                pass  # Ignore errors during shutdown
             
         # Close WebSocket session
         if self._websocket_session and not self._websocket_session.closed:
-            await self._websocket_session.close()
-            
-        await super().async_shutdown()
+            try:
+                await self._websocket_session.close()
+            except Exception:
+                pass  # Ignore errors during shutdown
 
     @callback
     def async_update_options(self) -> None:
