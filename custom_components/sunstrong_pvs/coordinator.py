@@ -15,7 +15,7 @@ from pypvs.pvs import PVS
 from pypvs.exceptions import PVSError, PVSAuthenticationError
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.event import async_track_time_interval
@@ -99,8 +99,16 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         live_data_enabled = self.entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
         _LOGGER.debug("Setting up live data tracker, enabled: %s", live_data_enabled)
         if live_data_enabled:
-            # Start WebSocket connection for live data with a small delay to avoid blocking startup
-            self._websocket_task = self.hass.async_create_task(self._async_start_websocket_delayed())
+            # Schedule WebSocket startup after Home Assistant is fully started
+            if self.hass.is_running:
+                # HA is already running, start immediately with delay
+                self._websocket_task = self.hass.async_create_task(self._async_start_websocket_delayed())
+            else:
+                # HA is still starting, wait for it to be ready
+                self.hass.bus.async_listen_once(
+                    EVENT_HOMEASSISTANT_STARTED, 
+                    self._async_ha_started_listener
+                )
 
     @callback
     def _async_stop_live_data_tracking(self) -> None:
@@ -162,8 +170,9 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_start_websocket_delayed(self) -> None:
         """Start WebSocket connection with a delay to avoid blocking startup."""
-        # Wait a bit to let Home Assistant finish startup
-        await asyncio.sleep(2)
+        # Wait a bit to let Home Assistant finish startup completely
+        await asyncio.sleep(5)
+        _LOGGER.debug("Starting WebSocket connection after delay")
         await self._async_start_websocket()
 
     async def _async_start_websocket(self) -> None:
@@ -306,6 +315,12 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             
         await super().async_shutdown()
         _LOGGER.debug("PVS coordinator shutdown complete")
+
+    @callback
+    def _async_ha_started_listener(self, event) -> None:
+        """Handle Home Assistant started event."""
+        _LOGGER.debug("Home Assistant started, starting WebSocket")
+        self._websocket_task = self.hass.async_create_task(self._async_start_websocket_delayed())
 
     @callback
     def _async_ha_stop_listener(self, event) -> None:
