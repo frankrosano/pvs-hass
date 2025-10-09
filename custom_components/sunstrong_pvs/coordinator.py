@@ -93,8 +93,8 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         live_data_enabled = self.entry.options.get(OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE)
         _LOGGER.debug("Setting up live data tracker, enabled: %s", live_data_enabled)
         if live_data_enabled:
-            # Start WebSocket connection for live data
-            self._websocket_task = self.hass.async_create_task(self._async_start_websocket())
+            # Start WebSocket connection for live data with a small delay to avoid blocking startup
+            self._websocket_task = self.hass.async_create_task(self._async_start_websocket_delayed())
 
     @callback
     def _async_stop_live_data_tracking(self) -> None:
@@ -154,6 +154,12 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         raise RuntimeError("Unreachable code in _async_update_data")  # pragma: no cover
 
+    async def _async_start_websocket_delayed(self) -> None:
+        """Start WebSocket connection with a delay to avoid blocking startup."""
+        # Wait a bit to let Home Assistant finish startup
+        await asyncio.sleep(2)
+        await self._async_start_websocket()
+
     async def _async_start_websocket(self) -> None:
         """Start WebSocket connection for live data."""
         host = self.entry.data.get(CONF_HOST)
@@ -168,7 +174,7 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 
                 async with self._websocket_session.ws_connect(
                     websocket_url,
-                    timeout=aiohttp.ClientTimeout(total=30),
+                    timeout=aiohttp.ClientTimeout(total=10, connect=5),
                     heartbeat=30,
                 ) as ws:
                     self._websocket_connection = ws
@@ -199,11 +205,14 @@ class PVSUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._websocket_connection = None
             
             # Wait before reconnecting (unless we're shutting down)
-            if not self._setup_complete:
+            if not self._setup_complete or self.hass.is_stopping:
                 break
                 
             _LOGGER.info("Reconnecting WebSocket in 10 seconds...")
-            await asyncio.sleep(10)
+            try:
+                await asyncio.sleep(10)
+            except asyncio.CancelledError:
+                break
 
     async def _process_websocket_message(self, data: dict) -> None:
         """Process incoming WebSocket message."""
