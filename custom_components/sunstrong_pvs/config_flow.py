@@ -32,6 +32,8 @@ from .const import (
     OPTION_UPDATE_PERIOD_S,
     OPTION_UPDATE_PERIOD_S_DEFAULT_VALUE,
     OPTION_UPDATE_PERIOD_S_MIN_VALUE,
+    OPTION_ENABLE_LIVE_DATA,
+    OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -280,20 +282,26 @@ class PVSOptionsFlowHandler(OptionsFlowWithConfigEntry):
                 errors[OPTION_UPDATE_PERIOD_S] = "MIN_INTERVAL"
             if len(errors) == 0:
                 options[OPTION_UPDATE_PERIOD_S] = user_input[OPTION_UPDATE_PERIOD_S]
+                options[OPTION_ENABLE_LIVE_DATA] = user_input[OPTION_ENABLE_LIVE_DATA]
                 return self.async_create_entry(title="", data=user_input)
 
         current_update_period_s = options.get(
             OPTION_UPDATE_PERIOD_S, OPTION_UPDATE_PERIOD_S_DEFAULT_VALUE
         )
+        current_enable_live_data = options.get(
+            OPTION_ENABLE_LIVE_DATA, OPTION_ENABLE_LIVE_DATA_DEFAULT_VALUE
+        )
+        schema_dict = {
+            vol.Required(
+                OPTION_UPDATE_PERIOD_S, default=current_update_period_s
+            ): int,
+            vol.Required(
+                OPTION_ENABLE_LIVE_DATA, default=current_enable_live_data
+            ): bool,
+        }
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        OPTION_UPDATE_PERIOD_S, default=current_update_period_s
-                    ): int,
-                },
-            ),
+            data_schema=vol.Schema(schema_dict),
             errors=errors,
         )
