@@ -38,7 +38,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo, CONNECTION_NETWORK_MAC
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import PVSConfigEntry, PVSUpdateCoordinator
@@ -99,7 +98,7 @@ INVERTER_SENSORS = (
         key=LAST_REPORTED_KEY,
         translation_key=LAST_REPORTED_KEY,
         device_class=SensorDeviceClass.TIMESTAMP,
-        value_fn=lambda inverter: dt_util.utc_from_timestamp(inverter.last_report_date),
+        value_fn=lambda inverter: datetime.datetime.fromtimestamp(inverter.last_report_date, tz=datetime.timezone.utc),
     ),
     PVSInverterSensorEntityDescription(
         key="lifetime_production",
